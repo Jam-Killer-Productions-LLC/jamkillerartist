@@ -1,0 +1,16 @@
+{
+    "name": "artistic-worker",
+    "main": "worker/index.ts",
+    "compatibility_date": "2025-03-07",
+    "compatibility_flags": ["nodejs_compat"],
+    "observability": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    },
+    "kv_namespaces": [
+      {
+        "binding": "ajamkillerartist",
+        "id": "7b240106e69f4489a5d725bde8c01aa3"
+      }
+    ]
+  }
