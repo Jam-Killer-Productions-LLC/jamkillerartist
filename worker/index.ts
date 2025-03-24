@@ -18,8 +18,8 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', logger());
 app.use('*', cors({
-  origin: 'https://mojohand.producerprotocol.pro',
-  allowMethods: ['POST', 'OPTIONS'],
+  origin: ['https://mojohand.producerprotocol.pro', 'http://localhost:5173'], // Add localhost for development
+  allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type'],
   maxAge: 86400,
 }));
@@ -61,6 +61,59 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
   return btoa(binary);
 }
+
+// Add GET endpoint to check for existing image
+app.get('/image/:userId', async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      return c.json({ error: 'userId is required and must be a non-empty string' }, 400);
+    }
+    
+    const sanitizedUserId = userId.trim();
+    console.log(`Checking for existing image for ${sanitizedUserId}`);
+    
+    const existingImage = await c.env.ajamkillerartist.get(sanitizedUserId);
+    
+    if (!existingImage) {
+      return c.json({ error: 'No image found for this user' }, 404);
+    }
+    
+    return c.json({
+      message: 'Image found',
+      userId: sanitizedUserId,
+      image: `data:image/png;base64,${existingImage}`
+    }, 200);
+  } catch (error) {
+    console.error('Error retrieving image:', error);
+    return c.json({ error: 'Failed to retrieve image', detail: error.message }, 500);
+  }
+});
+
+// Add DELETE endpoint to remove existing image
+app.delete('/image/:userId', async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      return c.json({ error: 'userId is required and must be a non-empty string' }, 400);
+    }
+    
+    const sanitizedUserId = userId.trim();
+    console.log(`Deleting image for ${sanitizedUserId}`);
+    
+    await c.env.ajamkillerartist.delete(sanitizedUserId);
+    
+    return c.json({
+      message: 'Image deleted successfully',
+      userId: sanitizedUserId
+    }, 200);
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return c.json({ error: 'Failed to delete image', detail: error.message }, 500);
+  }
+});
 
 app.post('/generate', async (c) => {
   try {
@@ -106,9 +159,9 @@ app.post('/generate', async (c) => {
     console.log(`Image stored for ${sanitizedUserId}`);
 
     return c.json({
-      data: {
-        image: `data:image/png;base64,${base64Image}`
-      }
+      message: 'Image generated successfully',
+      userId: sanitizedUserId,
+      image: `data:image/png;base64,${base64Image}`
     }, 200);
   } catch (error) {
     console.error('Image generation failed:', error);
