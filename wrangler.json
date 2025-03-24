@@ -20,9 +20,7 @@
       "id": "7b240106e69f4489a5d725bde8c01aa3"
     }
   ],
-  "ai": [
-    {
-      "binding": "AI"
-    }
-  ]
+  "ai": {
+    "binding": "AI"
+  }
 }
