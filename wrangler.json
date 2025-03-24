@@ -1,16 +1,37 @@
 {
-    "name": "artistic-worker",
-    "main": "worker/index.ts",
-    "compatibility_date": "2025-03-07",
-    "compatibility_flags": ["nodejs_compat"],
-    "observability": {
-      "enabled": true,
-      "head_sampling_rate": 1
-    },
-    "kv_namespaces": [
+  "name": "artistic-worker",
+  "compatibility_date": "2025-03-07",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "account_id": "c6797fa2baa8e4a322caacbd46a52fc6",
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "nftartist.producerprotocol.pro/*",
+      "zone_id": "b0e0d96207a3b3f37f8b4093982e34c1"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "ajamkillerartist",
+      "id": "ajamkillerartist"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
       {
-        "binding": "ajamkillerartist",
-        "id": "7b240106e69f4489a5d725bde8c01aa3"
+        "name": "NARRATIVE_DO",
+        "class_name": "jamkillernarrative_NarrativeDO"
       }
     ]
-  }
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": [
+        "jamkillernarrative_NarrativeDO"
+      ]
+    }
+  ]
+}
