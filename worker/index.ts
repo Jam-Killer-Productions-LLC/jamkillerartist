@@ -31,6 +31,28 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalLength = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    totalLength += value.length;
+  }
+
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return result.buffer;
+}
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -57,10 +79,16 @@ app.post('/generate', async (c) => {
 
     console.log(`Generating image for ${sanitizedUserId} with prompt: ${sanitizedPrompt}`);
     const aiResponse = await c.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', { prompt: sanitizedPrompt });
-    console.log('Raw AI response:', aiResponse);
+    console.log('Raw AI response type:', Object.prototype.toString.call(aiResponse));
 
-    // Check if aiResponse is a Response object with arrayBuffer
-    if (!(aiResponse instanceof Response) || typeof aiResponse.arrayBuffer !== 'function') {
+    let imageBuffer: ArrayBuffer;
+    if (aiResponse instanceof ReadableStream) {
+      console.log('Processing ReadableStream response');
+      imageBuffer = await streamToArrayBuffer(aiResponse);
+    } else if (aiResponse instanceof Response && typeof aiResponse.arrayBuffer === 'function') {
+      console.log('Processing Response object');
+      imageBuffer = await aiResponse.arrayBuffer();
+    } else {
       let errorDetail = 'Unknown response type';
       try {
         errorDetail = JSON.stringify(await aiResponse.json());
@@ -71,7 +99,7 @@ app.post('/generate', async (c) => {
       return c.json({ error: 'AI service returned invalid response', detail: errorDetail }, 500);
     }
 
-    const imageBuffer = await aiResponse.arrayBuffer();
+    console.log('Image buffer length:', imageBuffer.byteLength);
     const base64Image = arrayBufferToBase64(imageBuffer);
 
     await c.env.ajamkillerartist.put(sanitizedUserId, base64Image, { expirationTtl: 2592000 });
