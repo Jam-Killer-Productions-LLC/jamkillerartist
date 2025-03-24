@@ -17,21 +17,21 @@
       "binding": "ajamkillerartist",
       "id": "7b240106e69f4489a5d725bde8c01aa3"
     }
-  ],
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "NARRATIVE_DO",
-        "class_name": "jamkillernarrative_NarrativeDO"
-      }
-    ]
-  },
-  "migrations": [
-    {
-      "tag": "v1",
-      "new_classes": [
-        "jamkillernarrative_NarrativeDO"
-      ]
-    }
   ]
 }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
