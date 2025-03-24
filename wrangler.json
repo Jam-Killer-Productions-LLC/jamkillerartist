@@ -1,10 +1,10 @@
 {
   "name": "artistic-worker",
+  "account_id": "c6797fa2baa8e4a322caacbd46a52fc6",
   "compatibility_date": "2025-03-07",
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "account_id": "c6797fa2baa8e4a322caacbd46a52fc6",
   "workers_dev": true,
   "routes": [
     {
@@ -15,7 +15,7 @@
   "kv_namespaces": [
     {
       "binding": "ajamkillerartist",
-      "id": "ajamkillerartist"
+      "id": "7b240106e69f4489a5d725bde8c01aa3"
     }
   ],
   "durable_objects": {
