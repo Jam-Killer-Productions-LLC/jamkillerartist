@@ -3,10 +3,11 @@
   "main": "worker/index.ts",
   "account_id": "c6797fa2baa8e4a322caacbd46a52fc6",
   "compatibility_date": "2025-03-07",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
-  "workers_dev": true,
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
   "routes": [
     {
       "pattern": "nftartist.producerprotocol.pro/*",
@@ -19,9 +20,9 @@
       "id": "7b240106e69f4489a5d725bde8c01aa3"
     }
   ],
-  "ai_name": "AI",
-  "build": {
-    "command": "tsc",
-    "cwd": "./worker"
-  }
+  "ai": [
+    {
+      "binding": "AI"
+    }
+  ]
 }
