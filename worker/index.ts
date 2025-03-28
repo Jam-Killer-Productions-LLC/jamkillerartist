@@ -10,8 +10,8 @@ interface Env {
   AI: {
     run: (
       model: string,
-      options: { prompt: string; num_inference_steps?: number; guidance_scale?: number }
-    ) => Promise<{ images: string[] }>;
+      options: { prompt: string; steps?: number }
+    ) => Promise<{ image: string }>;
   };
   IMAGES: KVNamespace;
 }
@@ -111,17 +111,16 @@ Technical specifications:
 Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, distorted proportions, amateur composition, noise, grain, out of focus, poorly lit, oversaturated, washed out.`;
 
     // Generate the image using AI
-    const aiResponse = await c.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
+    const aiResponse = await c.env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
       prompt: formattedPrompt,
-      num_inference_steps: 75,
-      guidance_scale: 8.5,
+      steps: 8, // Maximum steps for highest quality
     });
 
-    if (!aiResponse || !aiResponse.images || !aiResponse.images[0]) {
+    if (!aiResponse || !aiResponse.image) {
       throw new Error('Invalid AI response');
     }
 
-    const imageData = aiResponse.images[0];
+    const imageData = aiResponse.image;
 
     // Store the image in KV
     await c.env.IMAGES.put(userId, imageData);
