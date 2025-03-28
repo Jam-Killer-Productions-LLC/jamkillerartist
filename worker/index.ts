@@ -13,7 +13,7 @@ interface Env {
       options: { prompt: string; steps?: number }
     ) => Promise<{ image: string }>;
   };
-  IMAGES: KVNamespace;
+  ajamkillerartist: KVNamespace;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -62,7 +62,13 @@ app.get('/image/:userId', async (c) => {
   }
 
   try {
-    const image = await c.env.IMAGES.get(userId);
+    // Check if KV binding exists
+    if (!c.env.ajamkillerartist) {
+      console.error('KV binding is not defined');
+      return c.json({ error: 'Service configuration error' }, 500);
+    }
+    
+    const image = await c.env.ajamkillerartist.get(userId);
     if (!image) {
       return c.json({ error: 'No image found' }, 404);
     }
@@ -81,7 +87,13 @@ app.delete('/image/:userId', async (c) => {
   }
 
   try {
-    await c.env.IMAGES.delete(userId);
+    // Check if KV binding exists
+    if (!c.env.ajamkillerartist) {
+      console.error('KV binding is not defined');
+      return c.json({ error: 'Service configuration error' }, 500);
+    }
+    
+    await c.env.ajamkillerartist.delete(userId);
     return c.json({ message: 'Image deleted successfully' });
   } catch (error) {
     console.error('Error deleting image:', error);
@@ -110,6 +122,12 @@ Technical specifications:
 
 Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, distorted proportions, amateur composition, noise, grain, out of focus, poorly lit, oversaturated, washed out.`;
 
+    // Check if AI binding exists
+    if (!c.env.AI) {
+      console.error('AI binding is not defined');
+      return c.json({ error: 'Service configuration error' }, 500);
+    }
+
     // Generate the image using AI
     const aiResponse = await c.env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
       prompt: formattedPrompt,
@@ -122,8 +140,14 @@ Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, d
 
     const imageData = aiResponse.image;
 
+    // Check if KV binding exists
+    if (!c.env.ajamkillerartist) {
+      console.error('KV binding is not defined');
+      return c.json({ error: 'Service configuration error' }, 500);
+    }
+
     // Store the image in KV
-    await c.env.IMAGES.put(userId, imageData);
+    await c.env.ajamkillerartist.put(userId, imageData);
 
     return c.json({
       message: 'Image generated successfully',
@@ -137,5 +161,8 @@ Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, d
 });
 
 export default {
-  fetch: app.fetch,
+  fetch: (request: Request, env: Env, ctx: ExecutionContext) => {
+    // Make bindings available to the app
+    return app.fetch(request, env, ctx);
+  }
 };
