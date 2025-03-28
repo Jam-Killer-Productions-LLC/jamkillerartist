@@ -10,8 +10,8 @@ interface Env {
   AI: {
     run: (
       model: string,
-      options: { messages: Array<{ role: string; content: string }> }
-    ) => Promise<{ choices: Array<{ message: { content: string } }> }>;
+      options: { prompt: string; num_inference_steps?: number; guidance_scale?: number }
+    ) => Promise<{ images: string[] }>;
   };
   IMAGES: KVNamespace;
 }
@@ -98,35 +98,30 @@ app.post('/generate', async (c) => {
       return c.json({ error: 'Prompt and user ID are required' }, 400);
     }
 
-    // Build the system message for the AI
-    const systemMessage = `You are an AI art generator for "Don't Kill The Jam, a Jam Killer Story."
-Generate a high-quality, professional NFT artwork based on this prompt:
-${prompt}
-
-The image should be:
-- Ultra-detailed digital art
-- 8K resolution
-- Professional lighting
-- Cinematic composition
-- Rich, vibrant colors
-- Dramatic lighting effects
-- Photorealistic textures
+    // Format the prompt for the AI
+    const formattedPrompt = `${prompt}
+Style: Ultra-detailed digital art, 8K resolution, professional lighting, cinematic composition.
+Technical specifications:
+- Sharp, clear details with high contrast
+- Rich, vibrant colors with professional color grading
+- Dramatic lighting with perfect exposure
+- Professional composition following rule of thirds
+- Photorealistic textures and materials
 
 Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, distorted proportions, amateur composition, noise, grain, out of focus, poorly lit, oversaturated, washed out.`;
 
     // Generate the image using AI
     const aiResponse = await c.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
-      messages: [
-        { role: 'system', content: systemMessage },
-        { role: 'user', content: 'Generate the NFT artwork now.' },
-      ],
+      prompt: formattedPrompt,
+      num_inference_steps: 75,
+      guidance_scale: 8.5,
     });
 
-    if (!aiResponse || !aiResponse.choices || !aiResponse.choices[0]?.message?.content) {
+    if (!aiResponse || !aiResponse.images || !aiResponse.images[0]) {
       throw new Error('Invalid AI response');
     }
 
-    const imageData = aiResponse.choices[0].message.content;
+    const imageData = aiResponse.images[0];
 
     // Store the image in KV
     await c.env.IMAGES.put(userId, imageData);
