@@ -68,11 +68,14 @@ app.get('/image/:userId', async (c) => {
       return c.json({ error: 'Service configuration error' }, 500);
     }
     
-    const image = await c.env.ajamkillerartist.get(userId);
-    if (!image) {
+    const imageBase64 = await c.env.ajamkillerartist.get(userId);
+    if (!imageBase64) {
       return c.json({ error: 'No image found' }, 404);
     }
-    return c.json({ image });
+    
+    // Format as data URI for browser display
+    const dataURI = `data:image/jpeg;base64,${imageBase64}`;
+    return c.json({ image: dataURI });
   } catch (error) {
     console.error('Error fetching image:', error);
     return c.json({ error: 'Internal server error' }, 500);
@@ -138,7 +141,7 @@ Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, d
       throw new Error('Invalid AI response');
     }
 
-    const imageData = aiResponse.image;
+    const imageBase64 = aiResponse.image;
 
     // Check if KV binding exists
     if (!c.env.ajamkillerartist) {
@@ -146,13 +149,16 @@ Negative prompt: blurry, low resolution, pixelated, watermarks, text overlays, d
       return c.json({ error: 'Service configuration error' }, 500);
     }
 
-    // Store the image in KV
-    await c.env.ajamkillerartist.put(userId, imageData);
+    // Store the raw base64 image in KV
+    await c.env.ajamkillerartist.put(userId, imageBase64);
+
+    // Format as data URI for browser display
+    const dataURI = `data:image/jpeg;base64,${imageBase64}`;
 
     return c.json({
       message: 'Image generated successfully',
       userId,
-      image: imageData,
+      image: dataURI
     });
   } catch (error) {
     console.error('Error generating image:', error);
